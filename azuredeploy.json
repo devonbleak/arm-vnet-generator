@@ -1,0 +1,116 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name_prefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Name prefix for resources"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location to deploy resources."
+            }
+        },
+        "vnet_prefixes": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of CIDR prefixes this vnet will contain."
+            }
+        },
+        "vnet_subnets": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of subnets to configure the vnet with.  Must include a GatewaySubnet."
+            }
+        },
+        "local_gateway_ip": {
+            "type": "string",
+            "metadata": {
+                "description": "IP address of the local gateway."
+            }
+        },
+        "local_gateway_prefixes": {
+            "type": "array",
+            "metadata": {
+                "description": "Array of CIDR prefixes to route through the local gateway."
+            }
+        }
+    },
+    "variables": {
+        "apiVersion": "2015-06-15"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('name_prefix'), '_vnet')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[parameters('vnet_prefixes')]"
+                },
+                "subnets": "[parameters('vnet_subnets')]"
+            }
+        },
+        {
+            "name": "[concat(parameters('name_prefix'), '_local_gateway')]",
+            "type": "Microsoft.Network/localNetworkGateways",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "gatewayIpAddress": "[parameters('local_gateway_ip')]",
+                "localNetworkAddressSpace": {
+                    "addressPrefixes": "[parameters('local_gateway_prefixes')]"
+                }
+            }
+        },
+        {
+            "name": "[concat(parameters('name_prefix'), '_vnet_gateway_ip')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "Dynamic"
+            }
+        },
+        {
+            "name": "[concat(parameters('name_prefix'), '_vnet_gateway')]",
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('name_prefix'), '_vnet')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('name_prefix'), '_vnet_gateway_ip')]"
+            ],
+            "properties": {
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "enableBgp": false,
+                "ipConfigurations": [
+                    {
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', concat(parameters('name_prefix'), '_vnet')), '/subnets/', 'GatewaySubnet')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(parameters('name_prefix'), '_vnet_gateway_ip'))]"
+                            }
+                        },
+                        "name": "[concat(parameters('name_prefix'), '_vnet_gateway_ipconfig')]"
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+        "gateway_ip": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('name_prefix'), '_vnet_gateway_ip')), variables('apiVersion')).ipAddress]"
+        }
+    }
+}
