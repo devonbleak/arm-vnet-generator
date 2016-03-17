@@ -9,3 +9,6 @@ includes all routes for 10/8 except 10.1.0.0/20.
 
 cidr_subtract.py is a small tool for calculating the CIDR routes for local
 gateways.
+
+Note that it takes ~30 minutes for the deployment to finish and you need to run
+it a second time for the vnet gateway IP to show up in the outputs.
