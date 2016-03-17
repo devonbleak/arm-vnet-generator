@@ -29,8 +29,10 @@ def main():
 
     args = parser.parse_args()
 
-    print json.dumps([str(net) for net in cidr_subtract(args.supernet_cidr, args.subnet_cidr)], indent=4)
+    nets = cidr_subtract(args.supernet_cidr, args.subnet_cidr)
 
+    print json.dumps([str(net) for net in nets],
+                     indent=4)
 
 
 if __name__ == '__main__':
