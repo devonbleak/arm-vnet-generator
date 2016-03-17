@@ -1,0 +1,52 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "australiaeast"
+        },
+        "name_prefix": {
+            "value": "sydney_prod_hub"
+        },
+        "vnet_prefixes": {
+            "value": [
+                "10.1.0.0/24"
+            ]
+        },
+        "vnet_subnets": {
+            "value": [
+                {
+                    "name": "GatewaySubnet",
+                    "properties": {
+                        "addressPrefix": "10.1.0.0/29"
+                    }
+                },
+                {
+                    "name": "default",
+                    "properties": {
+                        "addressPrefix": "10.1.0.128/25"
+                    }
+                }
+            ]
+        },
+        "local_gateway_ip": {
+            "value": "1.2.3.4"
+        },
+        "local_gateway_prefixes": {
+            "value": [
+                "10.0.0.0/16",
+                "10.1.16.0/20",
+                "10.1.32.0/19",
+                "10.1.64.0/18",
+                "10.1.128.0/17",
+                "10.2.0.0/15",
+                "10.4.0.0/14",
+                "10.8.0.0/13",
+                "10.16.0.0/12",
+                "10.32.0.0/11",
+                "10.64.0.0/10",
+                "10.128.0.0/9"
+            ]
+        }
+    }
+}
